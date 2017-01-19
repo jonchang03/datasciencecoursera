@@ -1,6 +1,6 @@
 best <- function(state, outcome) {
     ## Read outcome data
-    df <- read.csv("outcome-of-care-measures.csv")
+    df <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
     
     ## Check that state and outcome are valid
     if(!(state %in% df$State)) {
@@ -26,5 +26,5 @@ best <- function(state, outcome) {
     hospitals <- data[(data[,3] == min(data[,3])), 1]
     
     # break ties
-    paste(sort(hospitals)[1])
+    sort(hospitals)[1]
 }
