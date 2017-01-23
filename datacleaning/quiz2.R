@@ -24,7 +24,7 @@ json1 = content(req)
 json2 = jsonlite::fromJSON(toJSON(json1))
 print(json2[json2$full_name=="jtleek/datasharing",]$created_at)
 
-# "2013-11-07T13:25:07Z"
+## "2013-11-07T13:25:07Z"
 
 ## Question 2
 # Which of the following commands will select only the data for the probability weights pwgtp1 with ages less than 50?
@@ -34,12 +34,12 @@ download.file(fileUrl, destfile = "./data/AmericanCommunitySurvey.csv", method =
 acs <- read.csv("./data/AmericanCommunitySurvey.csv")
 head(acs)
 library("sqldf")
-sqldf("select pwgtp1 from acs where AGEP < 50")
+## sqldf("select pwgtp1 from acs where AGEP < 50")
 
 ## Question 3
 # Using the same data frame you created in the previous problem, what is the equivalent function to unique(acs$AGEP)
 query0 <- unique(acs$AGEP)
-query1 <- sqldf("select distinct AGEP from acs")
+## query1 <- sqldf("select distinct AGEP from acs")
 
 ## Question 4
 # How many characters are in the 10th, 20th, 30th and 100th lines of HTML from this page:
@@ -57,7 +57,7 @@ sapply(c(10, 20, 30, 100), function(x){
   ans <<- c(ans, nchar(htmlCode[x]))
 })
 print(ans)
-# 45 31  7  25
+## 45 31  7  25
 
 ## Question 5
 # Read this data set into R and report the sum of the numbers in the fourth of the nine columns.
@@ -74,4 +74,4 @@ colNames <- c("space", "week", "space",
               "sstnino4", "space", "sstanino4")
 data <- read.fwf("./data/q5.for", widths=wid, header=FALSE, skip=4, col.names = colNames) # fixed width format file
 print(sum(data$sstnino3))
-#32426.7
+## 32426.7
