@@ -1,11 +1,11 @@
 ## run_analysis.R
 
-# ## Download and unzip dataset if needed
+## Download and unzip dataset if needed
 # if(!file.exists("data")) {dir.create("data")}
 # fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
 # download.file(fileUrl, destfile = "./data/Dataset.zip", method = "curl")
 # unzip(zipfile="./data/Dataset.zip",exdir="./data")
-#
+
 ## 1. Merges the training and the test sets to create one data set.
 
 ## Read in data
