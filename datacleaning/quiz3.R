@@ -10,7 +10,7 @@ download.file(fileUrl, destfile = "./data/AmericanCommunitySurvey.csv", method =
 acs <- read.csv("./data/AmericanCommunitySurvey.csv")
 agriculturalLogical <- (acs$ACR==3) & (acs$AGS==6)
 print(head(which(agriculturalLogical), 3))
-# 125 238 262
+## 125 238 262
 
 ## Question 2
 # Using the jpeg package read in the following picture of your instructor into R
@@ -21,7 +21,7 @@ library(jpeg)
 fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fjeff.jpg"
 download.file(fileUrl, destfile = "./data/jeff.jpg", method = "curl")
 print(quantile(readJPEG("./data/jeff.jpg", native=TRUE), probs= c(30,80)/100))
-# -15259150 -10575416
+## -15259150 -10575416
 
 ## Question 3
 # Match the data based on the country shortcode. How many of the IDs match? 
@@ -42,7 +42,7 @@ print(sum(unique(gdp$CountryCode) %in% unique(feds$CountryCode)))
 library(dplyr)
 sorted <- arrange(mergedData, desc(GDPRank))
 print(sorted[13, "CountryName"])
-# St. Kitts and Nevis
+## St. Kitts and Nevis
 
 ## Question 4
 # What is the average GDP ranking for the "High income: OECD" and "High income: nonOECD" group?
@@ -50,9 +50,9 @@ print(sorted[13, "CountryName"])
 
 print(tapply(mergedData$GDPRank, mergedData$`Income Group`, mean))
 
-# 32.9667 and 91.91304
-# High income: nonOECD    High income: OECD           Low income  Lower middle income  Upper middle income 
-# 91.91304             32.96667            133.72973            107.70370             92.13333 
+## 32.9667 and 91.91304
+# High income: nonOECD    High income: OECD           Low income  Lower middle income  Upper middle income
+# 91.91304             32.96667            133.72973            107.70370             92.13333
 
 ## Question 5
 # Cut the GDP ranking into 5 separate quantile groups. Make a table versus Income.Group. How many countries
@@ -62,7 +62,7 @@ library(Hmisc)
 c1 <- cut2(mergedData$GDPRank, g=5)
 table(c1, mergedData$`Income Group`)
 
-# 5
+## 5
 # c1          High income: nonOECD High income: OECD Low income Lower middle income Upper middle income
 # [  1, 39)                    4                18          0                   5                  11
 # [ 39, 77)                    5                10          1                  13                   9
