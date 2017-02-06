@@ -1,4 +1,4 @@
-## Queston 5
+## Question 5
 
 # Uncomment only if the following files haven't yet been read into the environment
 # NEI <- readRDS("summarySCC_PM25.rds")

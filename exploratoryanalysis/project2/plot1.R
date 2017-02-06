@@ -1,4 +1,4 @@
-## Queston 1
+## Question 1
 
 # This first line will likely take a few seconds. Be patient!
 # read each of the two files using readRDS()
