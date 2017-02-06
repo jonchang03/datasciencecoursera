@@ -13,14 +13,14 @@ Baltimore_NEI <- NEI[NEI$fips == "24510", ]
 
 library(ggplot2)
 
-g <- ggplot(Baltimore_NEI, aes(x = factor(year), y = (Emissions), fill=type)) +
+plot3 <- ggplot(Baltimore_NEI, aes(x = factor(year), y = (Emissions), fill=type)) +
     geom_bar(stat="identity") +
     facet_grid(. ~ type) +
     guides(fill = FALSE) +
     xlab('Year') +
-    ylab(expression("PM"[2.5]*" Emissions")) +
+    ylab(expression("PM"[2.5]*" Emissions (tons)")) +
     labs(title = expression("PM"[2.5]*" Emissions by Source Type in Baltimore City, Maryland"))
 
 png(filename = "plot3.png")
-print(g)
+print(plot3)
 dev.off()
