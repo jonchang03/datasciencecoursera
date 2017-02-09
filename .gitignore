@@ -6,3 +6,5 @@ __packages
 *.rdx
 *.rdb
 exploratoryanalysis/ExData_Plotting1
+*.zip
+*.bz2

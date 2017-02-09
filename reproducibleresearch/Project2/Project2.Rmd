@@ -1,0 +1,131 @@
+---
+title: 'Reproducible Research: Course Project 2'
+author: "Jonathan Chang"
+date: "February 8, 2017"
+output: html_document
+---
+## Effect of Weather Events on Population Health and the Economy in the U.S.
+### Synopsis
+In this document, we analyze the effect of different types of storms and other severe weather events on public health and the economy. We use the [Storm Data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2) dataset from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. In the data processing step, we answer the following two questions:
+
+1. Across the United States, which types of events (as indicated in the 𝙴𝚅𝚃𝚈𝙿𝙴 variable) are most harmful with respect to population health?
+2. Across the United States, which types of events have the greatest economic consequences?
+
+In the results section, we summarized our findings in graph form.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.path = "figure/")
+```
+
+## Data Processing
+
+### Initial Processing Steps
+We cache this code chunk because the preprocessing steps of downloading and reading the CSV file into memory are very time-consuming.
+```{r cachedChunk, cache=TRUE}
+setwd("~/DSU/datasciencecoursera/reproducibleresearch/Project2")
+fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+if(!file.exists("ProjectData")) {dir.create("ProjectData")}
+download.file(fileUrl, destfile = "./ProjectData/StormData.csv.bz2", method = "curl")
+stormdata <- read.csv("./ProjectData/StormData.csv.bz2")
+```
+
+Initial info about the storm database:
+```{r}
+dim(stormdata)
+names(stormdata)
+head(stormdata)
+```
+
+### 1. Across the United States, which types of events (as indicated in the 𝙴𝚅𝚃𝚈𝙿𝙴 variable) are most harmful with respect to population health?
+Looking at the available, columns of data, it seems that the two variables related to population health that we can use to address this question are **FATALITIES** and **INJURIES**.
+First, we aggregate the total fatalities and injuries with respect to the **EVTYPE** variable.
+```{r}
+fatalities <- aggregate(FATALITIES ~ EVTYPE, stormdata, sum)
+injuries <- aggregate(INJURIES ~ EVTYPE, stormdata, sum)
+```
+
+We see that there are *985* types of events by doing a count **EVTYPE** levels.
+```{r}
+nlevels(stormdata$EVTYPE)
+```
+
+We order the list, narrow it down to the 10 events that are most harmful to population health by causing the most fatalities and injuries respectively, and then factor the fatalities and injuries by **EVTYPE**.
+```{r}
+top_10_fatalities <- fatalities[order(fatalities$FATALITIES, decreasing=TRUE), ][1:10, ]
+top_10_fatalities$EVTYPE <- factor(top_10_fatalities$EVTYPE, levels = top_10_fatalities$EVTYPE)
+print(top_10_fatalities)
+top_10_injuries <- injuries[order(injuries$INJURIES, decreasing=TRUE), ][1:10, ]
+top_10_injuries$EVTYPE <- factor(top_10_injuries$EVTYPE, levels = top_10_injuries$EVTYPE)
+print(top_10_injuries)
+```
+
+### 2. Across the United States, which types of events have the greatest economic consequences?
+Examining the available data, there are four variables related to economic consequences that are of interest to us:
+* **PROPDMG**
+* **CROPDMG**
+* **PROPDMGEXP**
+* **CROPDMGEXP**
+**PROPDMG** and **CROPDMG** refer to property damage and crop damage respectively, and **PROPDMGEXP** and **CROPDMGEXP** are used to signify magnitude. Let us first take a look at the magnitude levels.
+```{r}
+levels(stormdata$PROPDMGEXP)
+levels(stormdata$CROPDMGEXP)
+```
+
+Then, we find the total property and crop damage values by mapping the exponent symbols to their correct magnitudes, and then multiplying by the **PROPDMG** and **CROPDMG** values. We assume that *H* = 1e2, *K* = 1e3, *M* = 1e6, *B* = 1e9, and numerical values represent exponents. All other values, we assumed were invalid, so we assigned 0's to them. We create two new columns called **total_propdmg** and **total_cropdmg**, and a column called **total_econdmg** that is the sum of the property and crop damages.
+```{r}
+library(plyr)
+propdmg_magnitude <- mapvalues(stormdata$PROPDMGEXP,
+    c("", "-", "?", "+", "0", "1", "2", "3", "4", "5", "6", "7", "8", "B", "h", "H", "K", "m", "M"),
+    c(0,   0,   0,   0,   1,  1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e2, 1e2, 1e3, 1e6, 1e6))
+
+cropdmg_magnitude <- mapvalues(stormdata$CROPDMGEXP,
+    c("",  "?", "0", "2", "B", "k", "K", "m", "M"),
+    c(0,    0,   1,  1e2, 1e9, 1e3, 1e3, 1e6, 1e6))
+
+stormdata$total_propdmg <- stormdata$PROPDMG * as.numeric(propdmg_magnitude)
+stormdata$total_cropdmg <- stormdata$CROPDMG * as.numeric(cropdmg_magnitude)
+stormdata$total_econdmg <- stormdata$total_cropdmg + stormdata$total_propdmg
+```
+
+Now, we can perform similar analysis to question 1, aggregating the sum of the property and crop damages with respect to **EVTYPE**, and then finding the top 10 events that cause the most damage. It makes more sense to combine the property and crop damage values in this question because dollars are quantifiable whereas it is difficult to determine the value of population health. For example how many injuries equates to one fatality?
+```{r}
+totaldmg <- aggregate(total_econdmg ~ EVTYPE, stormdata, sum)
+top_10_totaldmg <- totaldmg[order(totaldmg$total_econdmg, decreasing=TRUE), ][1:10, ]
+top_10_totaldmg$EVTYPE <- factor(top_10_totaldmg$EVTYPE, levels = top_10_totaldmg$EVTYPE)
+print(top_10_totaldmg)
+```
+
+## Results
+Now, we can plot our results and visualize the answers for both questions:
+
+##### 1. Across the United States, which types of events (as indicated in the 𝙴𝚅𝚃𝚈𝙿𝙴 variable) are most harmful with respect to population health?
+
+```{r}
+library(ggplot2)
+ggplot(data=top_10_fatalities, aes(x=EVTYPE, y=FATALITIES, fill=EVTYPE)) + 
+        geom_bar(stat="identity", fill="steelblue") + 
+        guides(fill=FALSE) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        xlab("Types of Events") + ylab("Number of Fatalities") +
+        ggtitle("Top 10 Weather Events Causing Most Fatalities")
+
+ggplot(data=top_10_injuries, aes(x=EVTYPE, y=INJURIES, fill=EVTYPE)) + 
+        geom_bar(stat="identity", fill="steelblue") + 
+        guides(fill=FALSE) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        xlab("Types of Events") + ylab("Number of Injuries") +
+        ggtitle("Top 10 Weather Events Causing Most Injuries")
+```
+
+##### 2. Across the United States, which types of events have the greatest economic consequences?
+
+Again, we aggregated the sum of the property and crop damage values because dollars are quantifiable compared to fatalities and injuries. 
+```{r}
+ggplot(data=top_10_totaldmg, aes(x=EVTYPE, y=total_econdmg/1e6, fill=EVTYPE)) + 
+        geom_bar(stat="identity", fill="steelblue") + 
+        guides(fill=FALSE) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        xlab("Types of Events") + ylab("Value of Damage (millions)") +
+        ggtitle("Top 10 Weather Events Causing Most Economic Damage")
+```
