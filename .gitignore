@@ -1,3 +1,8 @@
 .Rhistory
 *.out
 testdir/
+__packages
+*.Rdata
+*.rdx
+*.rdb
+exploratoryanalysis/ExData_Plotting1
