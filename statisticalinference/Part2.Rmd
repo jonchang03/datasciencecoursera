@@ -1,0 +1,87 @@
+---
+title: "Statistical Inference Course Project - Part 2"
+author: "Jonathan Chang"
+date: "February 28, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+### 1. Exploratory Data Analysis
+Load the ToothGrowth data and perform some basic exploratory data analyses
+
+```{r}
+library(datasets)
+data(ToothGrowth)
+head(ToothGrowth)
+str(ToothGrowth)
+
+ToothGrowth$dose <- as.factor(ToothGrowth$dose) # convert dose to factor
+```
+
+### 2. Basic Summary of the Data
+Provide a basic summary of the data.
+```{r}
+library(ggplot2)
+library(gridExtra)
+
+summary(ToothGrowth)
+
+with(ToothGrowth, table(supp, dose))
+
+# basic boxplot
+supp_plot = ggplot(ToothGrowth, aes(supp, len, fill = supp)) + geom_boxplot()
+dose_plot = ggplot(ToothGrowth, aes(dose, len, fill = dose)) + geom_boxplot()
+grid.arrange(supp_plot, dose_plot, ncol = 2)
+```
+
+### 3. Compare Tooth Growth by supp and dose
+Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there are other approaches worth considering)
+
+We perform the following T tests.
+
+By supplement type:
+```{r}
+t.test(len ~ supp, data=ToothGrowth)
+```
+
+By dose intervals:
+```{r}
+tooth_dose_half_one <- subset(ToothGrowth, dose %in% c(0.5, 1.0))
+tooth_dose_half_two  <- subset(ToothGrowth, dose %in% c(0.5, 2.0))
+tooth_dose_one_two <- subset(ToothGrowth, dose %in% c(1.0, 2.0))
+
+t.test(len ~ dose, data=tooth_dose_half_one)
+t.test(len ~ dose, data=tooth_dose_half_two)
+t.test(len ~ dose, data=tooth_dose_one_two)
+```
+
+And by supplement type and dose level:
+```{r}
+tooth_dose_half <- subset(ToothGrowth, dose == 0.5)
+tooth_dose_one <- subset(ToothGrowth, dose == 1.0)
+tooth_dose_two <- subset(ToothGrowth, dose == 2.0)
+
+t.test(len ~ supp, data=tooth_dose_half)
+t.test(len ~ supp, data=tooth_dose_one)
+t.test(len ~ supp, data=tooth_dose_two)
+```
+
+### 4. Conclusions
+State your conclusions and the assumptions needed for your conclusions.
+
+#### Assumptions
+
+* the variables are independent and identically distributed
+* tooth growth follows the normal distribution
+
+#### Conclusions
+For the tests where we obtained a p-value > 0.05 we could not reject the null hypothesis.
+Based on the cases where the reported p-values were lower than 0.05, we conclude the following:
+
+* Dosage is positively correlated with tooth growth (independent of supplement type).
+* At lower dosages (.5 - 1 Mg), orange juice causes greater tooth growth than vitamin c.
