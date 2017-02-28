@@ -2,7 +2,9 @@
 title: "Statistical Inference Course Project - Part 2"
 author: "Jonathan Chang"
 date: "February 28, 2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -28,10 +30,7 @@ Provide a basic summary of the data.
 ```{r}
 library(ggplot2)
 library(gridExtra)
-
 summary(ToothGrowth)
-
-with(ToothGrowth, table(supp, dose))
 
 # basic boxplot
 supp_plot = ggplot(ToothGrowth, aes(supp, len, fill = supp)) + geom_boxplot()
