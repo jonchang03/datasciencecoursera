@@ -1,0 +1,82 @@
+---
+title: "Regression Models Course Project"
+author: "Jonathan Chang"
+date: "March 9, 2017"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+You work for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+1. Is an automatic or manual transmission better for MPG
+2. Quantify the MPG difference between automatic and manual transmissions
+
+## Exploratory Data Analysis
+First, we load the mtcars dataset, and take a quick look at variables. We take the *am* variable we are interested in, and change it to a factor variable with "Automatic" and "Manual" levels. (0 corresponds to automatic and 1 corresponds to manual.)
+```{r initial}
+data(mtcars)
+head(mtcars)
+mtcars$am <- factor(mtcars$am, labels = c("Automatic", "Manual"))
+```
+
+We then do a quick boxplot (in the appendix) of MPG vs. Transmission type to take an initial look at the effect of Automatic vs. Manual transmissions on MPG performance. We see that the plot (including the median) for Manual transmission is higher than that of the Automatic transmission, suggesting better performance for cars with Manual transmissions. 
+
+```{r boxplot, fig.show='hide'}
+boxplot(mpg ~ am, data = mtcars, main="MPG vs. Transmission Type", ylab="MPG")
+```
+
+We then perform a t-test (in appendix), assuming that the transmission data has a normal distribution.
+The null hypothesis is that the type of transmission (automatic or manual) does not effect a change in MPG.
+```{r ttest, results='hide'}
+t.test(mpg ~ am, data=mtcars,paired=FALSE,var.equal=FALSE)
+```
+Our p-value = 0.001374 < 0.05 which means that we reject the null hypothesis that there is no difference in MPG, and stick with our observation that manual trasmission is better for MPG.
+
+## Regression Model
+We begin by fitting a basic linear regression model of am (predictor) on mpg (outcome).
+```{r basic, results='hide'}
+fit_basic <- lm(mpg ~ am, data = mtcars)
+summary(fit_basic)
+```
+This model shows us that an automatic transmission car has 17.147 mpg, while with manual transmission, mpg increases by 7.245. We have a residual standard error of 4.902 on 30 degrees of freedom which means that we have almost 5mpg unexplained by our model. We have an Adjusted R-squared value of 0.3385, which means that we can only explain about 34% of the total variability of our model with am as the sole predictor.
+
+Next, we try to find a better model. We begin with a full model with all the variables as predictors.
+```{r full, results='hide'}
+fit_full <- lm(mpg ~ ., data=mtcars)
+summary(fit_full)
+```
+Here, we see that we have a Residual standard error of 2.65 on 21 degrees of freedom and an Adjusted R-squared of 0.8066, which is significantly better than our basic model. The problem is that none of the coefficients are significant at the 0.05 significance level.
+
+Finally, we use the step method to perform variable selection in both directions based on AIC, a means of measuring the relative quality of a statistical model for a given set of data.
+```{r step, results='hide'}
+fit_step <- step(fit_full, direction="both")
+summary(fit_step)
+```
+It turns out that our best model used the following variables: wt, qsec, and am. We have a Residual standard error of 2.459 on 28 degrees of freedom and an Adjusted R-squared of 0.8336. So, we can say that our model can explain about 83% of the variability of the MPG variable.
+
+## Conclusions
+```{r}
+summary(fit_step)$coef
+confint(fit_step)
+```
+Using anova (in the appendix), we see that the p-value for our fit_step model is highly significant, and we can reject the null hypothesis that wt, qsec, and am do not contribute to the change in MPG. So we select the model: mpg ~ wt + qsec + am. In our summary, we see that our coefficients have p-values < 0.05 and they make sense. For instance, every increase in 1,000lb decreases MPG by roughly 2.5 which is intuitive. Meanwhile, what we are really interested in quantifying, is that with a manual transmission, MPG is increased by 2.94. Taking the confint of our fit_step model, we are 95% confident that this value is between 0.05 and 5.83. 
+
+\newpage
+# Appendix
+
+```{r summaries}
+str(mtcars)
+boxplot(mpg ~ am, data = mtcars, main="MPG vs. Transmission Type", ylab="MPG")
+t.test(mpg ~ am, data=mtcars,paired=FALSE,var.equal=FALSE)
+summary(fit_basic)
+summary(fit_full)
+summary(fit_step)
+anova(fit_basic, fit_step, fit_full)
+```
