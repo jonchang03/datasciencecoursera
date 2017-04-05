@@ -1,0 +1,140 @@
+---
+title: "Machine Learning: Course Project"
+author: "Jonathan Chang"
+date: "March 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+.libPaths()
+```
+
+## Step 1. Data Preparation
+
+### Download Data
+The data for this project came from this source: http://groupware.les.inf.puc-rio.br/har. 
+```{r cachedChunk, cache=TRUE}
+if(!file.exists("data")) {dir.create("data")}
+trainUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(trainUrl, destfile = "./data/training.csv", method = "curl")
+testUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+download.file(testUrl, destfile = "./data/testing.csv", method = "curl")
+```
+
+### Load require libraries and set seed
+```{r}
+library(data.table)
+library(caret)
+library(randomForest)
+library(ggplot2)
+library(rattle)
+library(mlbench)
+
+set.seed(3202017)
+```
+
+### Load and Clean Data
+First, we read in the training and test data as a data table. Then, we find the columns with missing values, and remove them from our list of prediction variables that we will use. We also remove some variables that do not contribute to our prediction purposes (eg. user_name, timestamp, etc...). Finally, we fix our "classe" variable as a factor.
+
+```{r}
+training <- fread("./data/training.csv")
+testing <- fread("./data/testing.csv")
+# find columns with NAs and missing values
+incompleteColumns <- sapply(training,  function(x) any(is.na(x) | x == ""))
+# keep these 60 "complete" variables without any missing values
+numCompleteColumns <- sum(incompleteColumns == FALSE)
+predVariables <- names(training)[!incompleteColumns]
+
+# remove variables that are unecessary for our prediction
+unecessaryVariables <- Cl <- grep("name|timestamp|window|V1", colnames(training), value=F) 
+predVariables <- predVariables[-unecessaryVariables]
+
+# drop incomplete variables, and convert back to dataframe to use with "caret" package
+training <- as.data.frame(training[, predVariables, with=FALSE])
+# convert "classe" to factor variable
+training$classe = factor(training$classe)
+
+
+# testing set for later use
+testing <- as.data.frame(testing[, predVariables[-length(predVariables)], with=FALSE]) # testing set doesn't have "classe"
+
+```
+
+Let us check for zero covariates, and remove them, if any.
+```{r}
+nsv <- nearZeroVar(training, saveMetrics=TRUE)
+sum(nsv$zeroVar)
+nsv
+```
+It turns out that there are no remaining variables with zero variance or near zero variance. If there were any such variables, we have removed them in our data cleaning work above. 
+
+Finally, we split our training data into a set for training (70%) and a set for cross validation (30%).
+```{r}
+inTrain <- createDataPartition(y = training$classe, p=0.7, list=FALSE)
+train <- training[inTrain,]
+validate <- training[-inTrain,]
+```
+
+
+## Step 2. Modeling and Analysis
+predict manner in which they did the exercise - "classe" variable (A, B, C, D, or E)
+
+Following the steps detailed at this site: https://github.com/lgreski/datasciencectacontent/blob/master/markdown/pml-randomForestPerformance.md
+to improve the performance of Random Forest
+
+### Step 1: Configure Parallel Processing
+```{r configure_parallel}
+library(parallel)
+library(doParallel)
+cluster <- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
+registerDoParallel(cluster)
+```
+
+### Step 2: Configure trainControl object
+Provide the resampling method: cross-validation and set the number of folds to 10.
+```{r configure_trainControl}
+fitControl <- trainControl(method = "cv",
+                           number = 10,
+                           allowParallel = TRUE)
+```
+
+### Step 3: Develop training model (Random Forest)
+Next, we use caret::train() to train the model, using the trainControl() object that we just created.
+```{r randomForest, cache=TRUE}
+# Random Forest
+modRF <- train(classe ~ ., data = train, method = "rf", trControl = fitControl, ntree = 250)
+```
+
+
+### Step 4: De-register parallel processing cluster
+After processing the data, we explicitly shut down the cluster by calling the stopCluster() and registerDoSEQ() functions. registerDoSEQ() function is required to force R to return to single threaded processing.
+```{r deregister}
+stopCluster(cluster)
+registerDoSEQ()
+```
+
+### Cross Validation
+Next, we run our model on the validation set.
+```{r validate}
+predictRF <- predict(modRF, validate)
+confusionMatrix(validate$classe, predictRF)
+```
+From the confusion matrix, we see a very high accuracy of >99%, and a similarly high sensitivity and specificity!
+
+### Expected Out of Sample Error
+Now we calculate the accuracy using caret's postResample(), and the expected out of sample error should correspond to 1 - accuracy for the validation data. The accuracy is the same as the accuracy given to us by the confusion matrix. We see that the out of sample error is 0.0076, so we expect about 0.7% of the movements to be mislassified.
+```{r}
+accuracy <- postResample(predictRF, validate$classe)
+accuracy
+oose <- 1 - as.numeric(accuracy[1])
+oose
+```
+
+
+## Step 3. Quiz Predictions (20 questions)
+Finally, we run predict our 20 test cases using our random forest model. Because we had such a high accuracy on our cross-validation data set, and thus, a low expected out of sample error, we expect that almost none of our test cases will be misclassified.
+```{r quiz}
+quizRF <- predict(modRF, testing[, setdiff(names(testing), c("problem_id"))])
+quizRF
+```
