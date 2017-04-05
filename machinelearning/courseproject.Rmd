@@ -23,7 +23,7 @@ download.file(testUrl, destfile = "./data/testing.csv", method = "curl")
 ```
 
 ### Load require libraries and set seed
-```{r}
+```{r library, message=FALSE}
 library(data.table)
 library(caret)
 library(randomForest)
@@ -84,7 +84,7 @@ Following the steps detailed at this site: https://github.com/lgreski/datascienc
 to improve the performance of Random Forest
 
 ### Step 1: Configure Parallel Processing
-```{r configure_parallel}
+```{r configure_parallel, message=FALSE}
 library(parallel)
 library(doParallel)
 cluster <- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
@@ -99,8 +99,8 @@ fitControl <- trainControl(method = "cv",
                            allowParallel = TRUE)
 ```
 
-### Step 3: Develop training model (Random Forest)
-Next, we use caret::train() to train the model, using the trainControl() object that we just created.
+### Step 3: Random Forest (Develop Training Model)
+Next, we use caret::train() to train the model, using the trainControl() object that we just created. I decided to use Random Forest for my project after seeing the success that others have previously had. Furthermore, the post in the course forum on improving the performance of Random Forest using the parallel pacakge was very helpful.
 ```{r randomForest, cache=TRUE}
 # Random Forest
 modRF <- train(classe ~ ., data = train, method = "rf", trControl = fitControl, ntree = 250)

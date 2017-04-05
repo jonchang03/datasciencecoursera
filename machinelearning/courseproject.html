@@ -138,23 +138,11 @@ download.file(testUrl, destfile = &quot;./data/testing.csv&quot;, method = &quot
 <div id="load-require-libraries-and-set-seed" class="section level3">
 <h3>Load require libraries and set seed</h3>
 <pre class="r"><code>library(data.table)
-library(caret)</code></pre>
-<pre><code>## Loading required package: lattice</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre class="r"><code>library(randomForest)</code></pre>
-<pre><code>## randomForest 4.6-12</code></pre>
-<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre><code>## 
-## Attaching package: 'randomForest'</code></pre>
-<pre><code>## The following object is masked from 'package:ggplot2':
-## 
-##     margin</code></pre>
-<pre class="r"><code>library(ggplot2)
-library(rattle)</code></pre>
-<pre><code>## Rattle: A free graphical interface for data mining with R.
-## Version 4.1.0 Copyright (c) 2006-2015 Togaware Pty Ltd.
-## Type 'rattle()' to shake, rattle, and roll your data.</code></pre>
-<pre class="r"><code>library(mlbench)
+library(caret)
+library(randomForest)
+library(ggplot2)
+library(rattle)
+library(mlbench)
 
 set.seed(3202017)</code></pre>
 </div>
@@ -254,10 +242,8 @@ validate &lt;- training[-inTrain,]</code></pre>
 <div id="step-1-configure-parallel-processing" class="section level3">
 <h3>Step 1: Configure Parallel Processing</h3>
 <pre class="r"><code>library(parallel)
-library(doParallel)</code></pre>
-<pre><code>## Loading required package: foreach</code></pre>
-<pre><code>## Loading required package: iterators</code></pre>
-<pre class="r"><code>cluster &lt;- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
+library(doParallel)
+cluster &lt;- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
 registerDoParallel(cluster)</code></pre>
 </div>
 <div id="step-2-configure-traincontrol-object" class="section level3">
@@ -267,9 +253,9 @@ registerDoParallel(cluster)</code></pre>
                            number = 10,
                            allowParallel = TRUE)</code></pre>
 </div>
-<div id="step-3-develop-training-model-random-forest" class="section level3">
-<h3>Step 3: Develop training model (Random Forest)</h3>
-<p>Next, we use caret::train() to train the model, using the trainControl() object that we just created.</p>
+<div id="step-3-random-forest-develop-training-model" class="section level3">
+<h3>Step 3: Random Forest (Develop Training Model)</h3>
+<p>Next, we use caret::train() to train the model, using the trainControl() object that we just created. I decided to use Random Forest for my project after seeing the success that others have previously had. Furthermore, the post in the course forum on improving the performance of Random Forest using the parallel pacakge was very helpful.</p>
 <pre class="r"><code># Random Forest
 modRF &lt;- train(classe ~ ., data = train, method = &quot;rf&quot;, trControl = fitControl, ntree = 250)</code></pre>
 </div>
@@ -291,30 +277,30 @@ confusionMatrix(validate$classe, predictRF)</code></pre>
 ##          A 1673    0    1    0    0
 ##          B    3 1132    4    0    0
 ##          C    0   10 1015    1    0
-##          D    0    0   24  939    1
+##          D    0    0   25  938    1
 ##          E    0    0    0    1 1081
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9924          
-##                  95% CI : (0.9898, 0.9944)
+##                Accuracy : 0.9922          
+##                  95% CI : (0.9896, 0.9943)
 ##     No Information Rate : 0.2848          
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.9903          
+##                   Kappa : 0.9901          
 ##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9982   0.9912   0.9722   0.9979   0.9991
-## Specificity            0.9998   0.9985   0.9977   0.9949   0.9998
-## Pos Pred Value         0.9994   0.9939   0.9893   0.9741   0.9991
-## Neg Pred Value         0.9993   0.9979   0.9940   0.9996   0.9998
-## Prevalence             0.2848   0.1941   0.1774   0.1599   0.1839
-## Detection Rate         0.2843   0.1924   0.1725   0.1596   0.1837
+## Sensitivity            0.9982   0.9912   0.9713   0.9979   0.9991
+## Specificity            0.9998   0.9985   0.9977   0.9947   0.9998
+## Pos Pred Value         0.9994   0.9939   0.9893   0.9730   0.9991
+## Neg Pred Value         0.9993   0.9979   0.9938   0.9996   0.9998
+## Prevalence             0.2848   0.1941   0.1776   0.1597   0.1839
+## Detection Rate         0.2843   0.1924   0.1725   0.1594   0.1837
 ## Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
-## Balanced Accuracy      0.9990   0.9949   0.9850   0.9964   0.9994</code></pre>
+## Balanced Accuracy      0.9990   0.9949   0.9845   0.9963   0.9994</code></pre>
 <p>From the confusion matrix, we see a very high accuracy of &gt;99%, and a similarly high sensitivity and specificity!</p>
 </div>
 <div id="expected-out-of-sample-error" class="section level3">
@@ -323,10 +309,10 @@ confusionMatrix(validate$classe, predictRF)</code></pre>
 <pre class="r"><code>accuracy &lt;- postResample(predictRF, validate$classe)
 accuracy</code></pre>
 <pre><code>##  Accuracy     Kappa 
-## 0.9923534 0.9903270</code></pre>
+## 0.9921835 0.9901121</code></pre>
 <pre class="r"><code>oose &lt;- 1 - as.numeric(accuracy[1])
 oose</code></pre>
-<pre><code>## [1] 0.007646559</code></pre>
+<pre><code>## [1] 0.007816483</code></pre>
 </div>
 </div>
 <div id="step-3.-quiz-predictions-20-questions" class="section level2">
