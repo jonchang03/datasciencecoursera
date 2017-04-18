@@ -1,0 +1,19 @@
+---
+title: "Week 3 Assignment"
+author: "Jonathan Chang"
+date: "April 17, 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Iris
+```{r iris, echo=FALSE, message=FALSE, warning=FALSE}
+library(plotly)
+plot_ly(data = iris, x = ~Sepal.Length, y = ~Petal.Length, color = ~Species)
+```
+
+## Thanks
